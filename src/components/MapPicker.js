@@ -10,34 +10,31 @@ export default function MapPicker({ onPick, targetCoords }) {
   const [marker, setMarker] = useState(null);
   const [error, setError] = useState("");
 
-  // Init: centrer sur la position actuelle (ou Rabat fallback)
   useEffect(() => {
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
 
         if (status !== "granted") {
-          setError("Permission localisation refusée. (Carte sur Rabat)");
-          const fallback = {
+          setError("Permission localisation refusée.");
+          setRegion({
             latitude: 34.020882,
             longitude: -6.84165,
             latitudeDelta: 5,
             longitudeDelta: 5,
-          };
-          setRegion(fallback);
+          });
           return;
         }
 
         const loc = await Location.getCurrentPositionAsync({});
-        const start = {
+        setRegion({
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
           latitudeDelta: 0.2,
           longitudeDelta: 0.2,
-        };
-        setRegion(start);
+        });
       } catch (e) {
-        setError("Localisation indisponible. (Carte sur Rabat)");
+        setError("Localisation indisponible.");
         setRegion({
           latitude: 34.020882,
           longitude: -6.84165,
@@ -48,7 +45,6 @@ export default function MapPicker({ onPick, targetCoords }) {
     })();
   }, []);
 
-  // NEW: quand on reçoit targetCoords (depuis recherche ville), on recentre la map + marker
   useEffect(() => {
     if (!targetCoords?.latitude || !targetCoords?.longitude) return;
 
@@ -59,11 +55,13 @@ export default function MapPicker({ onPick, targetCoords }) {
       longitudeDelta: 0.2,
     };
 
-    setMarker({ latitude: targetCoords.latitude, longitude: targetCoords.longitude });
-    setRegion((prev) => prev || nextRegion);
+    setMarker({
+      latitude: targetCoords.latitude,
+      longitude: targetCoords.longitude,
+    });
 
-    if (mapRef.current?.animateToRegion) {
-      mapRef.current.animateToRegion(nextRegion, 600);
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(nextRegion, 800);
     }
   }, [targetCoords]);
 
@@ -77,35 +75,71 @@ export default function MapPicker({ onPick, targetCoords }) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>Chargement de la carte...</Text>
+        <Text style={styles.loadingText}>Chargement de la carte...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.wrap}>
+    <View style={styles.wrapper}>
       {!!error && <Text style={styles.error}>{error}</Text>}
 
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={region}
-        onPress={handlePress}
-      >
-        {marker && <Marker coordinate={marker} />}
-      </MapView>
+      <View style={styles.mapContainer}>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={region}
+          onPress={handlePress}
+        >
+          {marker && <Marker coordinate={marker} />}
+        </MapView>
+      </View>
 
       <Text style={styles.hint}>
-        Clique sur la carte pour choisir une zone et afficher la météo.
+        Clique sur la carte pour choisir une zone.
       </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: "100%", marginTop: 12 },
-  map: { width: "100%", height: 320, borderRadius: 12 },
-  hint: { marginTop: 8, opacity: 0.7 },
-  error: { color: "red", marginBottom: 8 },
-  loading: { marginTop: 40, alignItems: "center" },
+  wrapper: {
+    width: "100%",
+    marginTop: 12,
+  },
+  mapContainer: {
+    width: "100%",
+    height: 280,
+    borderRadius: 18,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#000000",
+    backgroundColor: "#DDEAFE",
+  },
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  hint: {
+    marginTop: 8,
+    fontSize: 13,
+    color: "#6B7280",
+  },
+  error: {
+    color: "red",
+    marginBottom: 8,
+    fontWeight: "600",
+  },
+  loading: {
+    width: "100%",
+    height: 260,
+    borderRadius: 18,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#6B7280",
+  },
 });
