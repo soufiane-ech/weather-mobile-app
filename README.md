@@ -90,7 +90,7 @@ git clone https://github.com/soufiane-ech/weather-mobile-app.git
 Navigate into the project directory:
 
 ```
-cd weather-app
+cd weather-mobile-app
 ```
 
 Install dependencies:
