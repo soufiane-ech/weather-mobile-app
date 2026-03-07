@@ -27,7 +27,6 @@ The application is designed with a clean mobile interface and focuses on usabili
 | ----------------------------- | ------------------------------------- |
 | ![Home](screenshots/home.jpeg) | ![Forecast](screenshots/forecast.jpeg) |
 
-> Place the screenshots inside a `screenshots/` folder in the repository.
 
 ---
 
@@ -68,6 +67,7 @@ The application is designed with a clean mobile interface and focuses on usabili
 │   └── utils
 │       └── temperatureScale.js
 │
+├── screenshots
 ├── App.js
 ├── package.json
 └── README.md
