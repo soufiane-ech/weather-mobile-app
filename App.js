@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Keyboard,
   ScrollView,
+  TouchableWithoutFeedback,
 } from "react-native";
 
 import WeatherCard from "./src/components/WeatherCard";
@@ -19,6 +20,7 @@ import {
   getForecast,
   getCurrentWeatherByCoords,
   getForecastByCoords,
+  searchCities,
 } from "./src/services/weather";
 
 export default function App() {
@@ -33,14 +35,39 @@ export default function App() {
   // NEW: coords que la map doit viser après une recherche ville
   const [mapTarget, setMapTarget] = useState(null);
 
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+    // ===== Fonction pour chercher les villes =====
+  async function handleCityChange(text) {
+  setCity(text);
+
+  if (text.length < 2) {
+    setSuggestions([]);
+    return;
+  }
+
+  try {
+    const results = await searchCities(text);
+    setSuggestions(results);
+  } catch (e) {
+    setSuggestions([]);
+  }
+  }
+
+  function hideSuggestions() {
+    setSuggestions([]);
+    setShowSuggestions(false);
+  }
+
+
   // ===== Recherche météo par nom de ville =====
   async function searchWeather() {
+    hideSuggestions();
     const trimmed = city.trim();
     if (!trimmed) {
       setError("Entrez une ville");
       return;
     }
-
     try {
       Keyboard.dismiss();
       setLoading(true);
@@ -109,9 +136,9 @@ export default function App() {
       <View style={styles.searchBox}>
         <TextInput
           style={styles.input}
-          placeholder="Entrer une ville (ex: Rabat)"
+          placeholder="Entrer une ville "
           value={city}
-          onChangeText={setCity}
+          onChangeText={handleCityChange}
           autoCapitalize="words"
           returnKeyType="search"
           onSubmitEditing={searchWeather}
@@ -120,6 +147,27 @@ export default function App() {
           <Text style={styles.buttonText}>Chercher</Text>
         </Pressable>
       </View>
+
+      {/* Afficher les suggestions */}
+          {suggestions.length > 0 && (
+      <View style={styles.suggestionsBox}>
+        {suggestions.map((item, index) => (
+          <Pressable
+            key={index}
+            style={styles.suggestionItem}
+            onPress={() => {
+              setCity(`${item.name}, ${item.country}`);
+              hideSuggestions();
+              loadWeatherFromCoords(item.lat, item.lon);
+            }}
+          >
+            <Text>
+              {item.name}, {item.country}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    )}
 
       {/* Map cliquable */}
       <View style={styles.mapSection}>
@@ -160,6 +208,24 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  suggestionsBox: {
+  backgroundColor: "white",
+  width: "100%",
+  borderRadius: 10,
+  marginTop: 4,
+  overflow: "hidden",
+  borderWidth: 1,
+  borderColor: "#E5E7EB",
+  alignItems: "center",
+},
+
+suggestionItem: {
+  padding: 10,
+  width: "50%",
+  alignItems: "center",
+  borderBottomWidth: 1,
+  borderColor: "#E5E7EB"
+},
   container: {
     padding: 20,
     backgroundColor: "#F3F4F6",

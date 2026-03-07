@@ -40,3 +40,14 @@ export async function getForecastByCoords(lat, lon) {
   if (!res.ok) throw new Error("Erreur prévisions coords");
   return res.json();
 }
+
+export async function searchCities(query) {
+  const url =
+    `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${OPENWEATHER_API_KEY}`;
+
+  const res = await fetch(url);
+
+  if (!res.ok) throw new Error("Erreur recherche villes");
+
+  return res.json();
+}
